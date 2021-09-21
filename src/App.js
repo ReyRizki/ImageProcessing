@@ -1,24 +1,17 @@
 import logo from './logo.svg';
 import './App.css';
+import { OpenCvProvider } from 'opencv-react';
+import Home from './components/home';
 
 function App() {
+  const onLoaded = (cv) => {
+    console.log('opencv loaded, cv')
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <OpenCvProvider onLoad={onLoaded} openCvPath="https://docs.opencv.org/master/opencv.js">
+      <Home />
+    </OpenCvProvider>
   );
 }
 
