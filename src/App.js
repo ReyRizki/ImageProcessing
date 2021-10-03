@@ -1,7 +1,6 @@
-import logo from './logo.svg';
 import './App.css';
 import { OpenCvProvider } from 'opencv-react';
-import Home from './components/home';
+import Home from './pages/home';
 
 function App() {
   const onLoaded = (cv) => {

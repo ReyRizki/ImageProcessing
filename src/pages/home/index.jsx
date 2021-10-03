@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useOpenCv } from 'opencv-react';
 import { Navbar, Container, Nav, NavDropdown, Row, Col } from 'react-bootstrap';
 
+import './styles.scss';
+
 export default function Home() {
   const { loaded, cv } = useOpenCv();
   const [imageSrc, setImageSrc] = useState(null);
@@ -14,15 +16,10 @@ export default function Home() {
     const imageElement = document.getElementById('image-src');
     const image = cv.imread(imageElement);
 
-    console.log(image);
-
     const result = new cv.Mat();
 
     cv.cvtColor(image, result, cv.COLOR_RGBA2GRAY);
-    cv.imshow('canvasOutput', result);
-
-    image.delete();
-    result.detele();
+    cv.imshow('canvas-output', result);
   }
 
   return (
@@ -58,7 +55,7 @@ export default function Home() {
           </Col>
           <Col md={6} sm={12}>
             <h2>Result</h2>
-            <canvas id="canvasOutput"></canvas>
+            <canvas id="canvas-output"></canvas>
           </Col>
         </Row>
       </Container>
