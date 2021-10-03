@@ -12,13 +12,14 @@ export default function Home() {
     document.getElementById("file-selector").click();
   }
 
-  const manipulateImage = () => {
+  const manipulateImage = (operation) => {
     const imageElement = document.getElementById('image-src');
     const image = cv.imread(imageElement);
 
-    const result = new cv.Mat();
+    let result = new cv.Mat();
 
-    cv.cvtColor(image, result, cv.COLOR_RGBA2GRAY);
+    result = operation(image, result);
+
     cv.imshow('canvas-output', result);
   }
 
@@ -34,7 +35,24 @@ export default function Home() {
                 menuVariant="dark"
               >
                 <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
-                <NavDropdown.Item onClick={() => manipulateImage()}>Manipulate</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => {
+                  manipulateImage((image, result) => {
+                    cv.cvtColor(image, result, cv.COLOR_RGBA2GRAY);
+
+                    return result;
+                  })}
+                }>
+                  Manipulate Pixel
+                </NavDropdown.Item>
+                <NavDropdown.Item onClick={() => {
+                  manipulateImage((image, result) => {
+                    cv.pyrDown(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
+
+                    return result;
+                  })}
+                }>
+                  Downsample
+                </NavDropdown.Item>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
