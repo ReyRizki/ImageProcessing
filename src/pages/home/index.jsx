@@ -31,10 +31,16 @@ export default function Home() {
             <Nav>
               <NavDropdown
                 id="nav-dropdown-dark-example"
-                title="Menu"
+                title="File"
                 menuVariant="dark"
               >
                 <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
+              </NavDropdown>
+              <NavDropdown
+                id="nav-dropdown-dark-example"
+                title="Filter"
+                menuVariant="dark"
+              >
                 <NavDropdown.Item onClick={() => {
                   manipulateImage((image, result) => {
                     cv.cvtColor(image, result, cv.COLOR_RGBA2GRAY);
