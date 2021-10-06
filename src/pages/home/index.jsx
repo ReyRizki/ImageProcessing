@@ -12,13 +12,14 @@ export default function Home() {
     document.getElementById("file-selector").click();
   }
 
-  const manipulateImage = () => {
+  const manipulateImage = (operation) => {
     const imageElement = document.getElementById('image-src');
     const image = cv.imread(imageElement);
 
-    const result = new cv.Mat();
+    let result = new cv.Mat();
 
-    cv.cvtColor(image, result, cv.COLOR_RGBA2GRAY);
+    result = operation(image, result);
+
     cv.imshow('canvas-output', result);
   }
 
@@ -30,12 +31,39 @@ export default function Home() {
             <Nav>
               <NavDropdown
                 id="nav-dropdown-dark-example"
-                title="Menu"
+                title="File"
                 menuVariant="dark"
               >
                 <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
-                <NavDropdown.Item onClick={() => manipulateImage()}>Manipulate</NavDropdown.Item>
               </NavDropdown>
+              {imageSrc && (
+                <NavDropdown
+                  id="nav-dropdown-dark-example"
+                  title="Filter"
+                  menuVariant="dark"
+                >
+                  <NavDropdown.Item onClick={() => {
+                    manipulateImage((image, result) => {
+                      cv.cvtColor(image, result, cv.COLOR_RGBA2GRAY);
+
+                      return result;
+                    })
+                  }
+                  }>
+                    Manipulate Pixel
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => {
+                    manipulateImage((image, result) => {
+                      cv.pyrDown(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
+
+                      return result;
+                    })
+                  }
+                  }>
+                    Downsample
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -50,7 +78,14 @@ export default function Home() {
               id="file-selector"
               name="file"
               style={{ display: 'none' }}
-              onChange={(e) => setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)}
+              onChange={(e) => {
+                setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)
+
+                const canvas = document.getElementById('canvas-output');
+                const context = canvas.getContext('2d');
+
+                context.clearRect(0, 0, canvas.width, canvas.height);
+              }}
             />
           </Col>
           <Col md={6} sm={12}>
