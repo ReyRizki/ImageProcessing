@@ -8,7 +8,7 @@ function App() {
   }
 
   return (
-    <OpenCvProvider onLoad={onLoaded} openCvPath="https://docs.opencv.org/master/opencv.js">
+    <OpenCvProvider onLoad={onLoaded} openCvPath="/opencv/opencv.js">
       <Home />
     </OpenCvProvider>
   );
