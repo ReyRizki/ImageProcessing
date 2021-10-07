@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useOpenCv } from 'opencv-react';
 import { Navbar, Container, Nav, NavDropdown, Row, Col } from 'react-bootstrap';
+
+import RgbModal from '../../components/rgb-modal';
 
 import './styles.scss';
 
 export default function Home() {
   const { loaded, cv } = useOpenCv();
   const [imageSrc, setImageSrc] = useState(null);
+  const [isModalShowed, toggleModal] = useState(false);
 
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
@@ -25,75 +28,80 @@ export default function Home() {
 
   return (
     <>
-      <Navbar variant="dark" bg="dark" expand="lg" className="mb-2">
-        <Container>
-          <Navbar.Collapse id="navbar-dark-example">
-            <Nav>
-              <NavDropdown
-                id="nav-dropdown-dark-example"
-                title="File"
-                menuVariant="dark"
-              >
-                <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
-              </NavDropdown>
-              {imageSrc && (
-                <NavDropdown
-                  id="nav-dropdown-dark-example"
-                  title="Filter"
-                  menuVariant="dark"
-                >
-                  <NavDropdown.Item onClick={() => {
-                    manipulateImage((image, result) => {
-                      cv.cvtColor(image, result, cv.COLOR_RGBA2GRAY);
+      {loaded ? (
+        <>
+          <RgbModal
+            isModalShowed={isModalShowed}
+            hideModal={() => toggleModal(false)}
+            cv={cv}
+          />
+          <Navbar variant="dark" bg="dark" expand="lg" className="mb-2">
+            <Container>
+              <Navbar.Collapse id="navbar-dark-example">
+                <Nav>
+                  <NavDropdown
+                    id="nav-dropdown-dark-example"
+                    title="File"
+                    menuVariant="dark"
+                  >
+                    <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
+                  </NavDropdown>
+                  {imageSrc && (
+                    <NavDropdown
+                      id="nav-dropdown-dark-example"
+                      title="Filter"
+                      menuVariant="dark"
+                    >
+                      <NavDropdown.Item onClick={() => {
+                        toggleModal(true);
+                      }}>
+                        Color Intensity
+                      </NavDropdown.Item>
+                      <NavDropdown.Item onClick={() => {
+                        manipulateImage((image, result) => {
+                          cv.pyrDown(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
 
-                      return result;
-                    })
-                  }
-                  }>
-                    Manipulate Pixel
-                  </NavDropdown.Item>
-                  <NavDropdown.Item onClick={() => {
-                    manipulateImage((image, result) => {
-                      cv.pyrDown(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
+                          return result;
+                        })
+                      }}>
+                        Downsample
+                      </NavDropdown.Item>
+                    </NavDropdown>
+                  )}
+                </Nav>
+              </Navbar.Collapse>
+            </Container>
+          </Navbar>
+          <Container>
+            <Row>
+              <Col md={6} sm={12}>
+                <h2>Image</h2>
+                <img id="image-src" alt="" src={imageSrc} />
+                <input
+                  type="file"
+                  id="file-selector"
+                  name="file"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)
 
-                      return result;
-                    })
-                  }
-                  }>
-                    Downsample
-                  </NavDropdown.Item>
-                </NavDropdown>
-              )}
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
-      <Container>
-        <Row>
-          <Col md={6} sm={12}>
-            <h2>Image</h2>
-            <img id="image-src" alt="" src={imageSrc} />
-            <input
-              type="file"
-              id="file-selector"
-              name="file"
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)
+                    const canvas = document.getElementById('canvas-output');
+                    const context = canvas.getContext('2d');
 
-                const canvas = document.getElementById('canvas-output');
-                const context = canvas.getContext('2d');
-
-                context.clearRect(0, 0, canvas.width, canvas.height);
-              }}
-            />
-          </Col>
-          <Col md={6} sm={12}>
-            <h2>Result</h2>
-            <canvas id="canvas-output"></canvas>
-          </Col>
-        </Row>
-      </Container>
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                  }}
+                />
+              </Col>
+              <Col md={6} sm={12}>
+                <h2>Result</h2>
+                <canvas id="canvas-output"></canvas>
+              </Col>
+            </Row>
+          </Container>
+        </>
+      ) : (
+        <p>UwU</p>
+      )}
     </>
   );
 }
