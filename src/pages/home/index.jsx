@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useOpenCv } from 'opencv-react';
-import { Navbar, Container, Nav, NavDropdown, Row, Col } from 'react-bootstrap';
+import { Navbar, Container, Nav, NavDropdown, Row, Col, Spinner } from 'react-bootstrap';
 
 import RgbModal from '../../components/rgb-modal';
 
@@ -100,7 +100,16 @@ export default function Home() {
           </Container>
         </>
       ) : (
-        <p>UwU</p>
+        <Container
+          id="loading-container"
+          className="d-flex align-items-center"
+        >
+          <Spinner
+            animation="grow"
+            variant="dark"
+            className="mx-auto"
+          />
+        </Container>
       )}
     </>
   );
