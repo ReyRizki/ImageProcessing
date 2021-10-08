@@ -59,6 +59,28 @@ export default function Home() {
                       </NavDropdown.Item>
                       <NavDropdown.Item onClick={() => {
                         manipulateImage((image, result) => {
+                          result = image.clone();
+
+                          for (let row = 0; row < result.rows; row++) {
+                            for (let col = 0; col < result.cols; col++) {
+                              if (result.isContinuous()) {
+                                const pos = row * result.cols * result.channels() + col * result.channels();
+
+                                for (let i = 0; i < 3; i++) {
+                                  result.data[pos + i] = 255 - result.data[pos + i];
+                                }
+                              }
+                            }
+                          }
+
+                          return result;
+                        })
+                      }}>
+                        Negative
+                      </NavDropdown.Item>
+                      <NavDropdown.Divider />
+                      <NavDropdown.Item onClick={() => {
+                        manipulateImage((image, result) => {
                           cv.pyrDown(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
 
                           return result;
