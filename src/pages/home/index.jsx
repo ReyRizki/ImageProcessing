@@ -3,13 +3,15 @@ import { useOpenCv } from 'opencv-react';
 import { Navbar, Container, Nav, NavDropdown, Row, Col, Spinner } from 'react-bootstrap';
 
 import RgbModal from '../../components/rgb-modal';
+import SamplingModal from '../../components/sampling-modal';
 
 import './styles.scss';
 
 export default function Home() {
   const { loaded, cv } = useOpenCv();
   const [imageSrc, setImageSrc] = useState(null);
-  const [isModalShowed, toggleModal] = useState(false);
+  const [isRgbModalShowed, toggleRgbModal] = useState(false);
+  const [isSamplingModalShowed, toggleSamplingModal] = useState(false);
 
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
@@ -31,8 +33,13 @@ export default function Home() {
       {loaded ? (
         <>
           <RgbModal
-            isModalShowed={isModalShowed}
-            hideModal={() => toggleModal(false)}
+            isModalShowed={isRgbModalShowed}
+            hideModal={() => toggleRgbModal(false)}
+            cv={cv}
+          />
+          <SamplingModal
+            isModalShowed={isSamplingModalShowed}
+            hideModal={() => toggleSamplingModal(false)}
             cv={cv}
           />
           <Navbar variant="dark" bg="dark" expand="lg" className="mb-2">
@@ -52,9 +59,7 @@ export default function Home() {
                       title="Filter"
                       menuVariant="dark"
                     >
-                      <NavDropdown.Item onClick={() => {
-                        toggleModal(true);
-                      }}>
+                      <NavDropdown.Item onClick={() => toggleRgbModal(true)}>
                         Color Intensity
                       </NavDropdown.Item>
                       <NavDropdown.Item onClick={() => {
@@ -79,14 +84,8 @@ export default function Home() {
                         Negative
                       </NavDropdown.Item>
                       <NavDropdown.Divider />
-                      <NavDropdown.Item onClick={() => {
-                        manipulateImage((image, result) => {
-                          cv.pyrDown(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
-
-                          return result;
-                        })
-                      }}>
-                        Downsample
+                      <NavDropdown.Item onClick={() => toggleSamplingModal(true)}>
+                        Sampling
                       </NavDropdown.Item>
                     </NavDropdown>
                   )}
