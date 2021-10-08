@@ -73,11 +73,11 @@ export default class RgbModal extends React.Component {
         <Modal.Header closeButton>
           <Modal.Title>Change Color Intensity</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="px-4">
           <Container className="d-flex">
             <canvas id="canvas-preview" className="mx-auto"></canvas>
           </Container>
-          <Container id="range-container">
+          <Container id="range-container" className="mt-3">
             {this.state.rgbValues.map((value, index) => {
               return (
                 <Row key={index}>
