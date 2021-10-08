@@ -58,14 +58,6 @@ export default class RgbModal extends React.Component {
     this.props.cv.imshow("canvas-preview", image);
   }
 
-  copyImage() {
-    const destination = document.getElementById('canvas-output');
-    const destinationContext = destination.getContext('2d');
-
-    const source = document.getElementById('canvas-preview');
-    destinationContext.drawImage(source, 0, 0, source.width, source.height);
-  }
-
   render() {
     const colors = ["Red", "Green", "Blue"];
 
@@ -139,7 +131,7 @@ export default class RgbModal extends React.Component {
           <Button
             variant="dark"
             onClick={() => {
-              this.copyImage();
+              this.props.cv.imshow("canvas-output", this.state.preview);
               this.props.hideModal();
             }}
           >
