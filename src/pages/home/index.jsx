@@ -4,6 +4,7 @@ import { Navbar, Container, Nav, NavDropdown, Row, Col, Spinner } from 'react-bo
 
 import RgbModal from '../../components/rgb-modal';
 import SamplingModal from '../../components/sampling-modal';
+import QuantizationModal from '../../components/quantization-modal';
 
 import './styles.scss';
 
@@ -12,6 +13,7 @@ export default function Home() {
   const [imageSrc, setImageSrc] = useState(null);
   const [isRgbModalShowed, toggleRgbModal] = useState(false);
   const [isSamplingModalShowed, toggleSamplingModal] = useState(false);
+  const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
 
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
@@ -40,6 +42,11 @@ export default function Home() {
           <SamplingModal
             isModalShowed={isSamplingModalShowed}
             hideModal={() => toggleSamplingModal(false)}
+            cv={cv}
+          />
+          <QuantizationModal
+            isModalShowed={isQuantizationModalShowed}
+            hideModal={() => toggleQuantizationModal(false)}
             cv={cv}
           />
           <Navbar variant="dark" bg="dark" expand="lg" className="mb-2">
@@ -87,6 +94,9 @@ export default function Home() {
                       <NavDropdown.Item onClick={() => toggleSamplingModal(true)}>
                         Sampling
                       </NavDropdown.Item>
+                      <NavDropdown.Item onClick={() => toggleQuantizationModal(true)}>
+                        Quantization
+                      </NavDropdown.Item>
                     </NavDropdown>
                   )}
                 </Nav>
@@ -103,6 +113,7 @@ export default function Home() {
                   id="file-selector"
                   name="file"
                   style={{ display: 'none' }}
+                  accept="image/*"
                   onChange={(e) => {
                     setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)
 
