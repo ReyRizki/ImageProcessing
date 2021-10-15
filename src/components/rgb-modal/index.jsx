@@ -18,7 +18,7 @@ export default class RgbModal extends React.Component {
 
   loadPreview() {
     const imageElement = document.getElementById('image-src');
-    const image = cv.imread(imageElement);
+    const image = this.props.cv.imread(imageElement);
 
     this.props.cv.imshow('canvas-preview', image);
     this.setState({

@@ -17,7 +17,7 @@ export default class SamplingModal extends React.Component {
 
   loadPreview() {
     const imageElement = document.getElementById('image-src');
-    const image = cv.imread(imageElement);
+    const image = this.props.cv.imread(imageElement);
 
     this.props.cv.imshow('canvas-preview', image);
     this.setState({
@@ -31,7 +31,7 @@ export default class SamplingModal extends React.Component {
 
     result = operation(image, result);
 
-    cv.imshow('canvas-preview', result);
+    this.props.cv.imshow('canvas-preview', result);
 
     this.setState({
       preview: result,
