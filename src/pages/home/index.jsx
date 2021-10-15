@@ -4,6 +4,7 @@ import { Navbar, Container, Nav, NavDropdown, Row, Col, Spinner } from 'react-bo
 
 import RgbModal from '../../components/rgb-modal';
 import SamplingModal from '../../components/sampling-modal';
+import QuantizationModal from '../../components/quantization-modal';
 
 import './styles.scss';
 
@@ -12,6 +13,7 @@ export default function Home() {
   const [imageSrc, setImageSrc] = useState(null);
   const [isRgbModalShowed, toggleRgbModal] = useState(false);
   const [isSamplingModalShowed, toggleSamplingModal] = useState(false);
+  const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
 
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
@@ -40,6 +42,11 @@ export default function Home() {
           <SamplingModal
             isModalShowed={isSamplingModalShowed}
             hideModal={() => toggleSamplingModal(false)}
+            cv={cv}
+          />
+          <QuantizationModal
+            isModalShowed={isQuantizationModalShowed}
+            hideModal={() => toggleQuantizationModal(false)}
             cv={cv}
           />
           <Navbar variant="dark" bg="dark" expand="lg" className="mb-2">
@@ -87,55 +94,7 @@ export default function Home() {
                       <NavDropdown.Item onClick={() => toggleSamplingModal(true)}>
                         Sampling
                       </NavDropdown.Item>
-                      <NavDropdown.Item onClick={() => {
-                        manipulateImage((image, result) => {
-                          // create float 32 matrix
-                          let sample = new cv.Mat(image.rows * image.cols, 3, cv.CV_32F);
-                          for (let y = 0; y < image.rows; y++) {
-                            for (let x = 0; x < image.cols; x++) {
-                              for (let z = 0; z < 3; z++) {
-                                sample.floatPtr(y + x * image.rows)[z] = image.ucharPtr(y, x)[z];
-                              }
-                            }
-                          }
-
-                          // k-means clustering
-                          let clusterCount = 8;
-                          let labels = new cv.Mat();
-                          let attempts = 5;
-                          let centers = new cv.Mat();
-
-                          let crite = new cv.TermCriteria(cv.TermCriteria_EPS + cv.TermCriteria_MAX_ITER, 10000, 0.0001);
-                          let criteria = [1, 10, 0.0001];
-
-                          cv.kmeans(sample, clusterCount, labels, crite, attempts, cv.KMEANS_RANDOM_CENTERS, centers);
-
-                          // create uint 8 matrix for result
-                          let newImage = new cv.Mat(image.size(), image.type());
-                          for (let y = 0; y < image.rows; y++) {
-                            for (let x = 0; x < image.cols; x++) {
-                              var cluster_idx = labels.intAt(y + x * image.rows, 0);
-
-                              let redChan = new Uint8Array(1);
-                              let greenChan = new Uint8Array(1);
-                              let blueChan = new Uint8Array(1);
-                              let alphaChan = new Uint8Array(1);
-
-                              redChan[0] = centers.floatAt(cluster_idx, 0);
-                              greenChan[0] = centers.floatAt(cluster_idx, 1);
-                              blueChan[0] = centers.floatAt(cluster_idx, 2);
-                              alphaChan[0] = 255;
-
-                              newImage.ucharPtr(y, x)[0] = redChan;
-                              newImage.ucharPtr(y, x)[1] = greenChan;
-                              newImage.ucharPtr(y, x)[2] = blueChan;
-                              newImage.ucharPtr(y, x)[3] = alphaChan;
-                            }
-                          }
-
-                          return newImage;
-                        })
-                      }}>
+                      <NavDropdown.Item onClick={() => toggleQuantizationModal(true)}>
                         Quantization
                       </NavDropdown.Item>
                     </NavDropdown>
