@@ -1,6 +1,9 @@
 import React from 'react';
 import { Modal, Button, Container, ButtonGroup } from 'react-bootstrap';
 
+import { getImageMatrix, showImageMatrix } from '../../functions/image';
+import { sampling } from '../../functions/filter';
+
 import './styles.scss';
 
 export default class SamplingModal extends React.Component {
@@ -12,7 +15,7 @@ export default class SamplingModal extends React.Component {
     }
 
     this.loadPreview = this.loadPreview.bind(this);
-    this.sampling = this.sampling.bind(this);
+    this.applySampling = this.applySampling.bind(this);
   }
 
   loadPreview() {
@@ -25,13 +28,11 @@ export default class SamplingModal extends React.Component {
     });
   }
 
-  sampling(operation) {
-    let image = this.state.preview;
-    let result = new this.props.cv.Mat();
+  applySampling(type) {
+    const image = getImageMatrix(this.props.cv, 'image-src');
+    const result = sampling(this.props.cv, image, type);
 
-    result = operation(image, result);
-
-    this.props.cv.imshow('canvas-preview', result);
+    showImageMatrix(this.props.cv, result, 'canvas-preview');
 
     this.setState({
       preview: result,
@@ -59,13 +60,7 @@ export default class SamplingModal extends React.Component {
             <ButtonGroup aria-label="Basic example" className="mx-auto mt-3">
               <Button
                 variant="dark"
-                onClick={() => {
-                  this.sampling((image, result) => {
-                    this.props.cv.pyrUp(image, result, new this.props.cv.Size(0, 0), this.props.cv.BORDER_DEFAULT);
-
-                    return result;
-                  })
-                }}
+                onClick={() => this.applySampling('up')}
               >
                 Upsample
               </Button>
@@ -77,13 +72,7 @@ export default class SamplingModal extends React.Component {
               </Button>
               <Button
                 variant="dark"
-                onClick={() => {
-                  this.sampling((image, result) => {
-                    this.props.cv.pyrDown(image, result, new this.props.cv.Size(0, 0), this.props.cv.BORDER_DEFAULT);
-
-                    return result;
-                  })
-                }}
+                onClick={() => this.applySampling('down')}
               >
                 Downsample
               </Button>
@@ -100,7 +89,7 @@ export default class SamplingModal extends React.Component {
           <Button
             variant="dark"
             onClick={() => {
-              this.props.cv.imshow("canvas-output", this.state.preview);
+              showImageMatrix(this.props.cv, this.state.preview, 'canvas-output');
               this.props.hideModal();
             }}
           >
