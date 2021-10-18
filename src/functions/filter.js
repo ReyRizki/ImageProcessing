@@ -1,5 +1,67 @@
+export const chageIntensity = (image, rgbValues) => {
+    const adjustValue = (x, n) => {
+        x += n;
+
+        if (x > 255) {
+            x = 255;
+        }
+
+        if (x < 0) {
+            x = 0;
+        }
+
+        return x;
+    }
+
+    console.log(image.data);
+    for (let row = 0; row < image.rows; row++) {
+        for (let col = 0; col < image.cols; col++) {
+            if (image.isContinuous()) {
+                const pos = row * image.cols * image.channels() + col * image.channels();
+
+                for (let i = 0; i < 3; i++) {
+                    image.data[pos + i] = adjustValue(image.data[pos + i], rgbValues[i]);
+                }
+            }
+        }
+    }
+
+    console.log(image.data);
+
+    return image;
+}
+
+export const negative = (image) => {
+    const result = image.clone();
+
+    for (let row = 0; row < result.rows; row++) {
+        for (let col = 0; col < result.cols; col++) {
+            if (result.isContinuous()) {
+                const pos = row * result.cols * result.channels() + col * result.channels();
+
+                for (let i = 0; i < 3; i++) {
+                    result.data[pos + i] = 255 - result.data[pos + i];
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+export const sampling = (cv, image, type) => {
+    let result = new cv.Mat();
+
+    if (type === 'up') {
+        cv.pyrUp(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
+    } else if (type === 'down') {
+        cv.pyrDown(image, result, new cv.Size(0, 0), cv.BORDER_DEFAULT);
+    }
+
+    return result;
+}
+
 export const quantization = (cv, image, k) => {
-    console.log(typeof k);
     // create float 32 matrix
     let sample = new cv.Mat(image.rows * image.cols, 3, cv.CV_32F);
     for (let y = 0; y < image.rows; y++) {

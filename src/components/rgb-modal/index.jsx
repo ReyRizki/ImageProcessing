@@ -1,6 +1,9 @@
 import React from 'react';
 import { Modal, Button, Container, Row, Col, Form } from 'react-bootstrap';
 
+import { getImageMatrix, showImageMatrix } from '../../functions/image';
+import { chageIntensity } from '../../functions/filter';
+
 import './styles.scss';
 
 export default class RgbModal extends React.Component {
@@ -13,49 +16,17 @@ export default class RgbModal extends React.Component {
     }
 
     this.loadPreview = this.loadPreview.bind(this);
-    this.changeIntensity = this.changeIntensity.bind(this);
   }
 
   loadPreview() {
-    const imageElement = document.getElementById('image-src');
-    const image = this.props.cv.imread(imageElement);
+    const image = getImageMatrix(this.props.cv, 'image-src');
 
-    this.props.cv.imshow('canvas-preview', image);
+    showImageMatrix(this.props.cv, image, 'canvas-preview');
+
     this.setState({
       preview: image,
       rgbValues: [0, 0, 0],
     });
-  }
-
-  changeIntensity() {
-    const adjustValue = (x, n) => {
-      x += n;
-
-      if (x > 255) {
-        x = 255;
-      }
-
-      if (x < 0) {
-        x = 0;
-      }
-
-      return x;
-    }
-
-    let image = this.state.preview;
-    for (let row = 0; row < image.rows; row++) {
-      for (let col = 0; col < image.cols; col++) {
-        if (image.isContinuous()) {
-          const pos = row * image.cols * image.channels() + col * image.channels();
-
-          for (let i = 0; i < 3; i++) {
-            image.data[pos + i] = adjustValue(image.data[pos + i], this.state.rgbValues[i]);
-          }
-        }
-      }
-    }
-
-    this.props.cv.imshow("canvas-preview", image);
   }
 
   render() {
@@ -115,7 +86,16 @@ export default class RgbModal extends React.Component {
             </Button>
             <Button
               variant="dark"
-              onClick={() => this.changeIntensity()}
+              onClick={() => {
+                const image = getImageMatrix(this.props.cv, 'image-src');
+                const result = chageIntensity(image, this.state.rgbValues);
+
+                showImageMatrix(this.props.cv, result, 'canvas-preview');
+
+                this.setState({
+                  preview: result,
+                })
+              }}
             >
               Apply
             </Button>
@@ -131,7 +111,7 @@ export default class RgbModal extends React.Component {
           <Button
             variant="dark"
             onClick={() => {
-              this.props.cv.imshow("canvas-output", this.state.preview);
+              showImageMatrix(this.props.cv, this.state.preview, 'canvas-output');
               this.props.hideModal();
             }}
           >

@@ -6,6 +6,9 @@ import RgbModal from '../../components/rgb-modal';
 import SamplingModal from '../../components/sampling-modal';
 import QuantizationModal from '../../components/quantization-modal';
 
+import { getImageMatrix, showImageMatrix } from '../../functions/image';
+import { negative } from '../../functions/filter';
+
 import './styles.scss';
 
 export default function Home() {
@@ -17,17 +20,6 @@ export default function Home() {
 
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
-  }
-
-  const manipulateImage = (operation) => {
-    const imageElement = document.getElementById('image-src');
-    const image = cv.imread(imageElement);
-
-    let result = new cv.Mat();
-
-    result = operation(image, result);
-
-    cv.imshow('canvas-output', result);
   }
 
   return (
@@ -70,23 +62,10 @@ export default function Home() {
                         Color Intensity
                       </NavDropdown.Item>
                       <NavDropdown.Item onClick={() => {
-                        manipulateImage((image, result) => {
-                          result = image.clone();
+                        const image = getImageMatrix(cv, 'image-src');
+                        const result = negative(image);
 
-                          for (let row = 0; row < result.rows; row++) {
-                            for (let col = 0; col < result.cols; col++) {
-                              if (result.isContinuous()) {
-                                const pos = row * result.cols * result.channels() + col * result.channels();
-
-                                for (let i = 0; i < 3; i++) {
-                                  result.data[pos + i] = 255 - result.data[pos + i];
-                                }
-                              }
-                            }
-                          }
-
-                          return result;
-                        })
+                        showImageMatrix(cv, result, 'canvas-output');
                       }}>
                         Negative
                       </NavDropdown.Item>
