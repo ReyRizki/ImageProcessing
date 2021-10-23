@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOpenCv } from 'opencv-react';
 import { Navbar, Container, Nav, NavDropdown, Row, Col, Spinner } from 'react-bootstrap';
 
@@ -7,20 +7,73 @@ import SamplingModal from '../../components/sampling-modal';
 import QuantizationModal from '../../components/quantization-modal';
 
 import { getImageMatrix, showImageMatrix } from '../../functions/image';
+import { drawHistogram } from '../../functions/histogram';
 import { negative } from '../../functions/filter';
 
 import './styles.scss';
 
 export default function Home() {
   const { loaded, cv } = useOpenCv();
+  const [mode, setMode] = useState('image');
   const [imageSrc, setImageSrc] = useState(null);
+  const [imageResult, setImageResult] = useState(null);
+
   const [isRgbModalShowed, toggleRgbModal] = useState(false);
   const [isSamplingModalShowed, toggleSamplingModal] = useState(false);
   const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
 
+  let imageElement = document.getElementById('image-src');
+  const colors = ['Red', 'Green', 'Blue'];
+
+  const clearCanvas = (canvasId) => {
+    const canvas = document.getElementById(canvasId);
+
+    if (canvas) {
+      const context = canvas.getContext('2d');
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
   }
+
+  useEffect(() => {
+    if (imageSrc && loaded) {
+      imageElement.onload = () => {
+        const image = cv.imread(imageElement);
+
+        setImageResult(image);
+      } 
+    } else if (imageSrc === null) {
+      setImageResult(null);
+
+      setMode('image');
+    }
+  }, [imageSrc, imageElement, loaded, cv])
+
+  useEffect(() => {
+    if (mode === 'image') {
+      clearCanvas('canvas-output');
+    } else if (mode === 'histogram') {
+      for (let i = 0; i < 3; i++) {
+        clearCanvas('canvas-histogram-' + i);
+      }
+    }
+
+    if (imageResult && loaded) {
+      if (mode === 'image') {
+        showImageMatrix(cv, imageResult, 'canvas-output');
+      } else if (mode === 'histogram') {
+        for (let i = 0; i < 3; i++) {
+          const result = drawHistogram(cv, imageResult, i);
+
+          showImageMatrix(cv, result, 'canvas-histogram-' + i);
+        }
+      }
+    }
+  }, [mode, imageResult, loaded, cv])
 
   return (
     <>
@@ -30,16 +83,19 @@ export default function Home() {
             isModalShowed={isRgbModalShowed}
             hideModal={() => toggleRgbModal(false)}
             cv={cv}
+            setImageResult={setImageResult}
           />
           <SamplingModal
             isModalShowed={isSamplingModalShowed}
             hideModal={() => toggleSamplingModal(false)}
             cv={cv}
+            setImageResult={setImageResult}
           />
           <QuantizationModal
             isModalShowed={isQuantizationModalShowed}
             hideModal={() => toggleQuantizationModal(false)}
             cv={cv}
+            setImageResult={setImageResult}
           />
           <Navbar variant="dark" bg="dark" expand="lg" className="mb-2">
             <Container>
@@ -51,7 +107,25 @@ export default function Home() {
                     menuVariant="dark"
                   >
                     <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => setImageSrc(null)}>Remove Image</NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => {
+                      const image = getImageMatrix(cv, 'image-src');
+
+                      setImageResult(image);
+                    }}>
+                      Reset Result
+                    </NavDropdown.Item>
                   </NavDropdown>
+                  {imageSrc && (
+                    <NavDropdown
+                      id="nav-dropdown-dark-example"
+                      title="Result Mode"
+                      menuVariant="dark"
+                    >
+                      <NavDropdown.Item onClick={() => setMode('image')}>Image</NavDropdown.Item>
+                      <NavDropdown.Item onClick={() => setMode('histogram')}>Histogram</NavDropdown.Item>
+                    </NavDropdown>
+                  )}
                   {imageSrc && (
                     <NavDropdown
                       id="nav-dropdown-dark-example"
@@ -65,7 +139,7 @@ export default function Home() {
                         const image = getImageMatrix(cv, 'image-src');
                         const result = negative(image);
 
-                        showImageMatrix(cv, result, 'canvas-output');
+                        setImageResult(result);
                       }}>
                         Negative
                       </NavDropdown.Item>
@@ -95,17 +169,27 @@ export default function Home() {
                   accept="image/*"
                   onChange={(e) => {
                     setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)
-
-                    const canvas = document.getElementById('canvas-output');
-                    const context = canvas.getContext('2d');
-
-                    context.clearRect(0, 0, canvas.width, canvas.height);
                   }}
                 />
               </Col>
               <Col md={6} sm={12}>
                 <h2>Result</h2>
-                <canvas id="canvas-output"></canvas>
+                {mode === 'image' ? (
+                  <canvas id="canvas-output"></canvas>
+                ) : (
+                  <Row>
+                    {colors.map((value, index) => {
+                      return (
+                        <Col md={4} key={index}>
+                          <canvas id={"canvas-histogram-" + index}></canvas>
+                          <Container className="d-flex">
+                            <p className="mx-auto">{value}</p>
+                          </Container>
+                        </Col>
+                      )
+                    })}
+                  </Row>
+                )}
               </Col>
             </Row>
           </Container>
