@@ -7,6 +7,7 @@ import SamplingModal from '../../components/sampling-modal';
 import QuantizationModal from '../../components/quantization-modal';
 
 import { getImageMatrix, showImageMatrix } from '../../functions/image';
+import { drawHistogram } from '../../functions/histogram';
 import { negative } from '../../functions/filter';
 
 import './styles.scss';
@@ -22,6 +23,21 @@ export default function Home() {
   const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
 
   let imageElement = document.getElementById('image-src');
+  const colors = ['Red', 'Green', 'Blue'];
+
+  const clearCanvas = (canvasId) => {
+    const canvas = document.getElementById(canvasId);
+
+    if (canvas) {
+      const context = canvas.getContext('2d');
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  const openFileSelector = () => {
+    document.getElementById("file-selector").click();
+  }
 
   useEffect(() => {
     if (imageSrc && loaded) {
@@ -30,18 +46,34 @@ export default function Home() {
 
         setImageResult(image);
       } 
+    } else if (imageSrc === null) {
+      setImageResult(null);
+
+      setMode('image');
     }
   }, [imageSrc, imageElement, loaded, cv])
 
   useEffect(() => {
+    if (mode === 'image') {
+      clearCanvas('canvas-output');
+    } else if (mode === 'histogram') {
+      for (let i = 0; i < 3; i++) {
+        clearCanvas('canvas-histogram-' + i);
+      }
+    }
+
     if (imageResult && loaded) {
-      showImageMatrix(cv, imageResult, 'canvas-output');
+      if (mode === 'image') {
+        showImageMatrix(cv, imageResult, 'canvas-output');
+      } else if (mode === 'histogram') {
+        for (let i = 0; i < 3; i++) {
+          const result = drawHistogram(cv, imageResult, i);
+
+          showImageMatrix(cv, result, 'canvas-histogram-' + i);
+        }
+      }
     }
   }, [mode, imageResult, loaded, cv])
-
-  const openFileSelector = () => {
-    document.getElementById("file-selector").click();
-  }
 
   return (
     <>
@@ -75,6 +107,14 @@ export default function Home() {
                     menuVariant="dark"
                   >
                     <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => setImageSrc(null)}>Remove Image</NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => {
+                      const image = getImageMatrix(cv, 'image-src');
+
+                      setImageResult(image);
+                    }}>
+                      Reset Result
+                    </NavDropdown.Item>
                   </NavDropdown>
                   {imageSrc && (
                     <NavDropdown
@@ -129,17 +169,27 @@ export default function Home() {
                   accept="image/*"
                   onChange={(e) => {
                     setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)
-
-                    const canvas = document.getElementById('canvas-output');
-                    const context = canvas.getContext('2d');
-
-                    context.clearRect(0, 0, canvas.width, canvas.height);
                   }}
                 />
               </Col>
               <Col md={6} sm={12}>
                 <h2>Result</h2>
-                <canvas id="canvas-output"></canvas>
+                {mode === 'image' ? (
+                  <canvas id="canvas-output"></canvas>
+                ) : (
+                  <Row>
+                    {colors.map((value, index) => {
+                      return (
+                        <Col md={4} key={index}>
+                          <canvas id={"canvas-histogram-" + index}></canvas>
+                          <Container className="d-flex">
+                            <p className="mx-auto">{value}</p>
+                          </Container>
+                        </Col>
+                      )
+                    })}
+                  </Row>
+                )}
               </Col>
             </Row>
           </Container>
