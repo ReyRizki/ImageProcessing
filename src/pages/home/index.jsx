@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOpenCv } from 'opencv-react';
 import { Navbar, Container, Nav, NavDropdown, Row, Col, Spinner } from 'react-bootstrap';
 
@@ -13,10 +13,31 @@ import './styles.scss';
 
 export default function Home() {
   const { loaded, cv } = useOpenCv();
+  const [mode, setMode] = useState('image');
   const [imageSrc, setImageSrc] = useState(null);
+  const [imageResult, setImageResult] = useState(null);
+
   const [isRgbModalShowed, toggleRgbModal] = useState(false);
   const [isSamplingModalShowed, toggleSamplingModal] = useState(false);
   const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
+
+  let imageElement = document.getElementById('image-src');
+
+  useEffect(() => {
+    if (imageSrc && loaded) {
+      imageElement.onload = () => {
+        const image = cv.imread(imageElement);
+
+        setImageResult(image);
+      } 
+    }
+  }, [imageSrc, imageElement, loaded, cv])
+
+  useEffect(() => {
+    if (imageResult && loaded) {
+      showImageMatrix(cv, imageResult, 'canvas-output');
+    }
+  }, [mode, imageResult, loaded, cv])
 
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
@@ -30,16 +51,19 @@ export default function Home() {
             isModalShowed={isRgbModalShowed}
             hideModal={() => toggleRgbModal(false)}
             cv={cv}
+            setImageResult={setImageResult}
           />
           <SamplingModal
             isModalShowed={isSamplingModalShowed}
             hideModal={() => toggleSamplingModal(false)}
             cv={cv}
+            setImageResult={setImageResult}
           />
           <QuantizationModal
             isModalShowed={isQuantizationModalShowed}
             hideModal={() => toggleQuantizationModal(false)}
             cv={cv}
+            setImageResult={setImageResult}
           />
           <Navbar variant="dark" bg="dark" expand="lg" className="mb-2">
             <Container>
@@ -55,6 +79,16 @@ export default function Home() {
                   {imageSrc && (
                     <NavDropdown
                       id="nav-dropdown-dark-example"
+                      title="Result Mode"
+                      menuVariant="dark"
+                    >
+                      <NavDropdown.Item onClick={() => setMode('image')}>Image</NavDropdown.Item>
+                      <NavDropdown.Item onClick={() => setMode('histogram')}>Histogram</NavDropdown.Item>
+                    </NavDropdown>
+                  )}
+                  {imageSrc && (
+                    <NavDropdown
+                      id="nav-dropdown-dark-example"
                       title="Filter"
                       menuVariant="dark"
                     >
@@ -65,7 +99,7 @@ export default function Home() {
                         const image = getImageMatrix(cv, 'image-src');
                         const result = negative(image);
 
-                        showImageMatrix(cv, result, 'canvas-output');
+                        setImageResult(result);
                       }}>
                         Negative
                       </NavDropdown.Item>

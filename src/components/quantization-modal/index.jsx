@@ -100,7 +100,7 @@ export default class RgbModal extends React.Component {
           <Button
             variant="dark"
             onClick={() => {
-              showImageMatrix(this.props.cv, this.state.preview, 'canvas-output');
+              this.props.setImageResult(this.state.preview);
               this.props.hideModal();
             }}
           >

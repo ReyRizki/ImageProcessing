@@ -13,7 +13,6 @@ export const chageIntensity = (image, rgbValues) => {
         return x;
     }
 
-    console.log(image.data);
     for (let row = 0; row < image.rows; row++) {
         for (let col = 0; col < image.cols; col++) {
             if (image.isContinuous()) {
@@ -25,8 +24,6 @@ export const chageIntensity = (image, rgbValues) => {
             }
         }
     }
-
-    console.log(image.data);
 
     return image;
 }
