@@ -104,3 +104,13 @@ export const quantization = (cv, image, k) => {
 
     return newImage;
 }
+
+export const lowpassFilter = (cv, image) => {
+    let result = new cv.Mat();
+    let arr = [1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9];
+    let M = cv.matFromArray(3, 3, cv.CV_32FC1, arr);
+    let anchor = new cv.Point(-1, -1);
+    cv.filter2D(image, result, cv.CV_8U, M, anchor, 0, cv.BORDER_DEFAULT);
+
+    return result;
+}
