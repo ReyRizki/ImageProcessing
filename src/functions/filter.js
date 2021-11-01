@@ -1,18 +1,18 @@
-export const chageIntensity = (image, rgbValues) => {
-    const adjustValue = (x, n) => {
-        x += n;
+const adjustValue = (x, n) => {
+    x += n;
 
-        if (x > 255) {
-            x = 255;
-        }
-
-        if (x < 0) {
-            x = 0;
-        }
-
-        return x;
+    if (x > 255) {
+        x = 255;
     }
 
+    if (x < 0) {
+        x = 0;
+    }
+
+    return x;
+}
+
+export const chageIntensity = (image, rgbValues) => {
     for (let row = 0; row < image.rows; row++) {
         for (let col = 0; col < image.cols; col++) {
             if (image.isContinuous()) {
@@ -124,6 +124,29 @@ export const highpassFilter = (cv, image) => {
     result.data.forEach((value, index) => {
         result.data[index] = image.data[index] - value + 127;
     })
+
+    return result;
+}
+
+export const bandpassFilter = (cv, image) => {
+    let g1 = new cv.Mat(), g2 = new cv.Mat();
+
+    cv.GaussianBlur(image, g1, new cv.Size(1, 1), 1);
+    cv.GaussianBlur(image, g2, new cv.Size(3, 3), 3);
+
+    let result = image.clone();
+
+    for (let row = 0; row < result.rows; row++) {
+        for (let col = 0; col < result.cols; col++) {
+            if (result.isContinuous()) {
+                const pos = row * result.cols * result.channels() + col * result.channels();
+
+                for (let c = 0; c < 3; c++) {
+                    result.data[pos + c] = g2.data[pos + c] - g1.data[pos + c];
+                }
+            }
+        }
+    }
 
     return result;
 }
