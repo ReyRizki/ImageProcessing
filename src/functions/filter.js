@@ -114,3 +114,16 @@ export const lowpassFilter = (cv, image) => {
 
     return result;
 }
+
+export const highpassFilter = (cv, image) => {
+    let result = new cv.Mat();
+    let ksize = new cv.Size(0, 0);
+
+    cv.GaussianBlur(image, result, ksize, 3);
+
+    result.data.forEach((value, index) => {
+        result.data[index] = image.data[index] - value + 127;
+    })
+
+    return result;
+}

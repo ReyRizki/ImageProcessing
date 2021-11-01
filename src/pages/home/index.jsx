@@ -17,7 +17,7 @@ import QuantizationModal from "../../components/quantization-modal";
 
 import { getImageMatrix, showImageMatrix } from "../../functions/image";
 import { drawHistogram } from "../../functions/histogram";
-import { negative, lowpassFilter } from "../../functions/filter";
+import { negative, lowpassFilter, highpassFilter } from "../../functions/filter";
 
 import "./styles.scss";
 
@@ -200,7 +200,14 @@ export default function Home() {
                             >
                               Low Pass Filter
                             </Dropdown.Item>
-                            <Dropdown.Item>
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = highpassFilter(cv, image);
+
+                                setImageResult(result);
+                              }} 
+                            >
                               High Pass Filter
                             </Dropdown.Item>
                             <Dropdown.Item>
