@@ -1,43 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { useOpenCv } from 'opencv-react';
-import { Navbar, Container, Nav, NavDropdown, Row, Col, Spinner } from 'react-bootstrap';
+import React, { useState, useEffect } from "react";
+import { useOpenCv } from "opencv-react";
+import {
+  Navbar,
+  Container,
+  Nav,
+  NavDropdown,
+  Row,
+  Col,
+  Spinner,
+  Dropdown,
+} from "react-bootstrap";
 
-import RgbModal from '../../components/rgb-modal';
-import SamplingModal from '../../components/sampling-modal';
-import QuantizationModal from '../../components/quantization-modal';
+import RgbModal from "../../components/rgb-modal";
+import QuantizationModal from "../../components/quantization-modal";
 
-import { getImageMatrix, showImageMatrix } from '../../functions/image';
-import { drawHistogram } from '../../functions/histogram';
-import { negative } from '../../functions/filter';
+import { getImageMatrix, showImageMatrix } from "../../functions/image";
+import { drawHistogram } from "../../functions/histogram";
+import {
+  negative,
+  lowpassFilter,
+  highpassFilter,
+  bandpassFilter,
+  sampling,
+} from "../../functions/filter";
 
-import './styles.scss';
+import "./styles.scss";
 
 export default function Home() {
   const { loaded, cv } = useOpenCv();
-  const [mode, setMode] = useState('image');
+  const [mode, setMode] = useState("image");
   const [imageSrc, setImageSrc] = useState(null);
   const [imageResult, setImageResult] = useState(null);
 
   const [isRgbModalShowed, toggleRgbModal] = useState(false);
-  const [isSamplingModalShowed, toggleSamplingModal] = useState(false);
   const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
 
-  let imageElement = document.getElementById('image-src');
-  const colors = ['Red', 'Green', 'Blue'];
+  let imageElement = document.getElementById("image-src");
+  const colors = ["Red", "Green", "Blue"];
 
   const clearCanvas = (canvasId) => {
     const canvas = document.getElementById(canvasId);
 
     if (canvas) {
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
 
       context.clearRect(0, 0, canvas.width, canvas.height);
     }
-  }
+  };
 
   const openFileSelector = () => {
     document.getElementById("file-selector").click();
-  }
+  };
+
+  const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+    <Container
+      fluid
+      className="px-0 d-flex justify-content-between"
+      ref={ref}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick(e);
+      }}
+      onMouseOver={(e) => {
+        e.preventDefault();
+
+        onClick(e);
+      }}
+    >
+      <span>{children}</span>
+      <span>&#9656;</span>
+    </Container>
+  ));
 
   useEffect(() => {
     if (imageSrc && loaded) {
@@ -45,35 +78,35 @@ export default function Home() {
         const image = cv.imread(imageElement);
 
         setImageResult(image);
-      } 
+      };
     } else if (imageSrc === null) {
       setImageResult(null);
 
-      setMode('image');
+      setMode("image");
     }
-  }, [imageSrc, imageElement, loaded, cv])
+  }, [imageSrc, imageElement, loaded, cv]);
 
   useEffect(() => {
-    if (mode === 'image') {
-      clearCanvas('canvas-output');
-    } else if (mode === 'histogram') {
+    if (mode === "image") {
+      clearCanvas("canvas-output");
+    } else if (mode === "histogram") {
       for (let i = 0; i < 3; i++) {
-        clearCanvas('canvas-histogram-' + i);
+        clearCanvas("canvas-histogram-" + i);
       }
     }
 
     if (imageResult && loaded) {
-      if (mode === 'image') {
-        showImageMatrix(cv, imageResult, 'canvas-output');
-      } else if (mode === 'histogram') {
+      if (mode === "image") {
+        showImageMatrix(cv, imageResult, "canvas-output");
+      } else if (mode === "histogram") {
         for (let i = 0; i < 3; i++) {
           const result = drawHistogram(cv, imageResult, i);
 
-          showImageMatrix(cv, result, 'canvas-histogram-' + i);
+          showImageMatrix(cv, result, "canvas-histogram-" + i);
         }
       }
     }
-  }, [mode, imageResult, loaded, cv])
+  }, [mode, imageResult, loaded, cv]);
 
   return (
     <>
@@ -82,12 +115,6 @@ export default function Home() {
           <RgbModal
             isModalShowed={isRgbModalShowed}
             hideModal={() => toggleRgbModal(false)}
-            cv={cv}
-            setImageResult={setImageResult}
-          />
-          <SamplingModal
-            isModalShowed={isSamplingModalShowed}
-            hideModal={() => toggleSamplingModal(false)}
             cv={cv}
             setImageResult={setImageResult}
           />
@@ -106,49 +133,129 @@ export default function Home() {
                     title="File"
                     menuVariant="dark"
                   >
-                    <NavDropdown.Item onClick={() => openFileSelector()}>Open Image</NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => setImageSrc(null)}>Remove Image</NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => {
-                      const image = getImageMatrix(cv, 'image-src');
+                    <NavDropdown.Item onClick={() => openFileSelector()}>
+                      Open Image
+                    </NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => setImageSrc(null)}>
+                      Remove Image
+                    </NavDropdown.Item>
+                    <NavDropdown.Item
+                      onClick={() => {
+                        const image = getImageMatrix(cv, "image-src");
 
-                      setImageResult(image);
-                    }}>
+                        setImageResult(image);
+                      }}
+                    >
                       Reset Result
                     </NavDropdown.Item>
                   </NavDropdown>
                   {imageSrc && (
                     <NavDropdown
                       id="nav-dropdown-dark-example"
-                      title="Result Mode"
-                      menuVariant="dark"
-                    >
-                      <NavDropdown.Item onClick={() => setMode('image')}>Image</NavDropdown.Item>
-                      <NavDropdown.Item onClick={() => setMode('histogram')}>Histogram</NavDropdown.Item>
-                    </NavDropdown>
-                  )}
-                  {imageSrc && (
-                    <NavDropdown
-                      id="nav-dropdown-dark-example"
-                      title="Filter"
+                      title="Edit"
                       menuVariant="dark"
                     >
                       <NavDropdown.Item onClick={() => toggleRgbModal(true)}>
                         Color Intensity
                       </NavDropdown.Item>
-                      <NavDropdown.Item onClick={() => {
-                        const image = getImageMatrix(cv, 'image-src');
-                        const result = negative(image);
+                      <NavDropdown.Item
+                        onClick={() => {
+                          const image = getImageMatrix(cv, "image-src");
+                          const result = negative(image);
 
-                        setImageResult(result);
-                      }}>
+                          setImageResult(result);
+                        }}
+                      >
                         Negative
                       </NavDropdown.Item>
                       <NavDropdown.Divider />
-                      <NavDropdown.Item onClick={() => toggleSamplingModal(true)}>
-                        Sampling
+                      <NavDropdown.Item>
+                        <Dropdown variant="dark" drop="end">
+                          <Dropdown.Toggle as={CustomToggle}>
+                            Sampling
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu variant="dark">
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = sampling(cv, image, "up");
+
+                                setImageResult(result);
+                              }}
+                            >
+                              Upsampling
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = sampling(cv, image, "down");
+
+                                setImageResult(result);
+                              }}
+                            >
+                              Downsampling
+                            </Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
                       </NavDropdown.Item>
-                      <NavDropdown.Item onClick={() => toggleQuantizationModal(true)}>
+                      <NavDropdown.Item
+                        onClick={() => toggleQuantizationModal(true)}
+                      >
                         Quantization
+                      </NavDropdown.Item>
+                      <NavDropdown.Divider />
+                      <NavDropdown.Item>
+                        <Dropdown variant="dark" drop="end">
+                          <Dropdown.Toggle as={CustomToggle}>
+                            Filter
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu variant="dark">
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = lowpassFilter(cv, image);
+
+                                setImageResult(result);
+                              }}
+                            >
+                              Low Pass Filter
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = highpassFilter(cv, image);
+
+                                setImageResult(result);
+                              }}
+                            >
+                              High Pass Filter
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = bandpassFilter(cv, image);
+
+                                setImageResult(result);
+                              }}
+                            >
+                              Band Pass Filter
+                            </Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </NavDropdown.Item>
+                    </NavDropdown>
+                  )}
+                  {imageSrc && (
+                    <NavDropdown
+                      id="nav-dropdown-dark-example"
+                      title="Result Mode"
+                      menuVariant="dark"
+                    >
+                      <NavDropdown.Item onClick={() => setMode("image")}>
+                        Image
+                      </NavDropdown.Item>
+                      <NavDropdown.Item onClick={() => setMode("histogram")}>
+                        Histogram
                       </NavDropdown.Item>
                     </NavDropdown>
                   )}
@@ -165,16 +272,20 @@ export default function Home() {
                   type="file"
                   id="file-selector"
                   name="file"
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                   accept="image/*"
                   onChange={(e) => {
-                    setImageSrc(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)
+                    setImageSrc(
+                      e.target.files[0]
+                        ? URL.createObjectURL(e.target.files[0])
+                        : null
+                    );
                   }}
                 />
               </Col>
               <Col md={6} sm={12}>
                 <h2>Result</h2>
-                {mode === 'image' ? (
+                {mode === "image" ? (
                   <canvas id="canvas-output"></canvas>
                 ) : (
                   <Row>
@@ -186,7 +297,7 @@ export default function Home() {
                             <p className="mx-auto">{value}</p>
                           </Container>
                         </Col>
-                      )
+                      );
                     })}
                   </Row>
                 )}
@@ -195,15 +306,8 @@ export default function Home() {
           </Container>
         </>
       ) : (
-        <Container
-          id="loading-container"
-          className="d-flex align-items-center"
-        >
-          <Spinner
-            animation="grow"
-            variant="dark"
-            className="mx-auto"
-          />
+        <Container id="loading-container" className="d-flex align-items-center">
+          <Spinner animation="grow" variant="dark" className="mx-auto" />
         </Container>
       )}
     </>
