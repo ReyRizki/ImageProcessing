@@ -12,12 +12,17 @@ import {
 } from "react-bootstrap";
 
 import RgbModal from "../../components/rgb-modal";
-import SamplingModal from "../../components/sampling-modal";
 import QuantizationModal from "../../components/quantization-modal";
 
 import { getImageMatrix, showImageMatrix } from "../../functions/image";
 import { drawHistogram } from "../../functions/histogram";
-import { negative, lowpassFilter, highpassFilter, bandpassFilter } from "../../functions/filter";
+import {
+  negative,
+  lowpassFilter,
+  highpassFilter,
+  bandpassFilter,
+  sampling,
+} from "../../functions/filter";
 
 import "./styles.scss";
 
@@ -28,7 +33,6 @@ export default function Home() {
   const [imageResult, setImageResult] = useState(null);
 
   const [isRgbModalShowed, toggleRgbModal] = useState(false);
-  const [isSamplingModalShowed, toggleSamplingModal] = useState(false);
   const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
 
   let imageElement = document.getElementById("image-src");
@@ -63,12 +67,8 @@ export default function Home() {
         onClick(e);
       }}
     >
-      <span>
-        {children}
-      </span>
-      <span>
-        &#9656;
-      </span>
+      <span>{children}</span>
+      <span>&#9656;</span>
     </Container>
   ));
 
@@ -115,12 +115,6 @@ export default function Home() {
           <RgbModal
             isModalShowed={isRgbModalShowed}
             hideModal={() => toggleRgbModal(false)}
-            cv={cv}
-            setImageResult={setImageResult}
-          />
-          <SamplingModal
-            isModalShowed={isSamplingModalShowed}
-            hideModal={() => toggleSamplingModal(false)}
             cv={cv}
             setImageResult={setImageResult}
           />
@@ -175,10 +169,34 @@ export default function Home() {
                         Negative
                       </NavDropdown.Item>
                       <NavDropdown.Divider />
-                      <NavDropdown.Item
-                        onClick={() => toggleSamplingModal(true)}
-                      >
-                        Sampling
+                      <NavDropdown.Item>
+                        <Dropdown variant="dark" drop="end">
+                          <Dropdown.Toggle as={CustomToggle}>
+                            Sampling
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu variant="dark">
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = sampling(cv, image, "up");
+
+                                setImageResult(result);
+                              }}
+                            >
+                              Upsampling
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                              onClick={() => {
+                                const image = getImageMatrix(cv, "image-src");
+                                const result = sampling(cv, image, "down");
+
+                                setImageResult(result);
+                              }}
+                            >
+                              Downsampling
+                            </Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
                       </NavDropdown.Item>
                       <NavDropdown.Item
                         onClick={() => toggleQuantizationModal(true)}
@@ -188,7 +206,9 @@ export default function Home() {
                       <NavDropdown.Divider />
                       <NavDropdown.Item>
                         <Dropdown variant="dark" drop="end">
-                          <Dropdown.Toggle as={CustomToggle}>Filter</Dropdown.Toggle>
+                          <Dropdown.Toggle as={CustomToggle}>
+                            Filter
+                          </Dropdown.Toggle>
                           <Dropdown.Menu variant="dark">
                             <Dropdown.Item
                               onClick={() => {
@@ -196,7 +216,7 @@ export default function Home() {
                                 const result = lowpassFilter(cv, image);
 
                                 setImageResult(result);
-                              }} 
+                              }}
                             >
                               Low Pass Filter
                             </Dropdown.Item>
@@ -206,7 +226,7 @@ export default function Home() {
                                 const result = highpassFilter(cv, image);
 
                                 setImageResult(result);
-                              }} 
+                              }}
                             >
                               High Pass Filter
                             </Dropdown.Item>
@@ -216,7 +236,7 @@ export default function Home() {
                                 const result = bandpassFilter(cv, image);
 
                                 setImageResult(result);
-                              }} 
+                              }}
                             >
                               Band Pass Filter
                             </Dropdown.Item>
