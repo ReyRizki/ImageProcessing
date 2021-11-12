@@ -7,7 +7,11 @@ export default class OpenImageModal extends React.Component {
 
     this.state = {
       type: "images/*",
-    }
+    };
+  }
+
+  openFileSelector() {
+    document.getElementById("file-selector").click();
   }
 
   render() {
@@ -24,9 +28,9 @@ export default class OpenImageModal extends React.Component {
           <Modal.Title>Choose File Type</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Select 
+          <Form.Select
             value={this.state.type}
-            onChange={(e) => this.setState({ type: e.target.value }, () => console.log(this.state.type))}
+            onChange={(e) => this.setState({ type: e.target.value })}
           >
             <option value="images/*">All Types</option>
             <option value=".jpg">JPG</option>
@@ -36,23 +40,30 @@ export default class OpenImageModal extends React.Component {
             <option value=".svg">SVG</option>
             <option value=".gif">GIF</option>
             <option value=".bmp">BMP</option>
-          </Form.Select> 
+          </Form.Select>
+          <input
+            type="file"
+            id="file-selector"
+            name="file"
+            style={{ display: "none" }}
+            accept={this.state.type}
+            onChange={(e) => {
+              if (e.target.files[0]) {
+                this.props.setImageSrc(URL.createObjectURL(e.target.files[0]));
+                this.props.hideModal();
+              }
+            }}
+          />
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="outline-dark"
-            onClick={this.props.hideModal}
-          >
+          <Button variant="outline-dark" onClick={this.props.hideModal}>
             Cancel
           </Button>
-          <Button
-            variant="dark"
-            onClick={this.props.hideModal}
-          >
+          <Button variant="dark" onClick={this.openFileSelector}>
             Open
           </Button>
         </Modal.Footer>
       </Modal>
-    )
+    );
   }
 }

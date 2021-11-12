@@ -113,6 +113,7 @@ export default function Home() {
           <OpenImageModal
             isModalShowed={isOpenImageModalShowed}
             hideModal={() => toggleOpenImageModal(false)}
+            setImageSrc={setImageSrc}
           />
           <RgbModal
             isModalShowed={isRgbModalShowed}
