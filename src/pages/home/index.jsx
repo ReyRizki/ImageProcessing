@@ -13,6 +13,7 @@ import {
 
 import RgbModal from "../../components/rgb-modal";
 import QuantizationModal from "../../components/quantization-modal";
+import OpenImageModal from "../../components/open-image-modal";
 
 import { getImageMatrix, showImageMatrix } from "../../functions/image";
 import { drawHistogram } from "../../functions/histogram";
@@ -32,6 +33,7 @@ export default function Home() {
   const [imageSrc, setImageSrc] = useState(null);
   const [imageResult, setImageResult] = useState(null);
 
+  const [isOpenImageModalShowed, toggleOpenImageModal] = useState(false);
   const [isRgbModalShowed, toggleRgbModal] = useState(false);
   const [isQuantizationModalShowed, toggleQuantizationModal] = useState(false);
 
@@ -46,10 +48,6 @@ export default function Home() {
 
       context.clearRect(0, 0, canvas.width, canvas.height);
     }
-  };
-
-  const openFileSelector = () => {
-    document.getElementById("file-selector").click();
   };
 
   const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
@@ -112,6 +110,10 @@ export default function Home() {
     <>
       {loaded ? (
         <>
+          <OpenImageModal
+            isModalShowed={isOpenImageModalShowed}
+            hideModal={() => toggleOpenImageModal(false)}
+          />
           <RgbModal
             isModalShowed={isRgbModalShowed}
             hideModal={() => toggleRgbModal(false)}
@@ -133,21 +135,25 @@ export default function Home() {
                     title="File"
                     menuVariant="dark"
                   >
-                    <NavDropdown.Item onClick={() => openFileSelector()}>
+                    <NavDropdown.Item onClick={() => toggleOpenImageModal(true)}>
                       Open Image
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => setImageSrc(null)}>
-                      Remove Image
-                    </NavDropdown.Item>
-                    <NavDropdown.Item
-                      onClick={() => {
-                        const image = getImageMatrix(cv, "image-src");
+                    {imageSrc && (
+                      <>
+                        <NavDropdown.Item onClick={() => setImageSrc(null)}>
+                          Remove Image
+                        </NavDropdown.Item>
+                        <NavDropdown.Item
+                          onClick={() => {
+                            const image = getImageMatrix(cv, "image-src");
 
-                        setImageResult(image);
-                      }}
-                    >
-                      Reset Result
-                    </NavDropdown.Item>
+                            setImageResult(image);
+                          }}
+                        >
+                          Reset Result
+                        </NavDropdown.Item>
+                      </>
+                    )}
                   </NavDropdown>
                   {imageSrc && (
                     <NavDropdown
@@ -268,20 +274,6 @@ export default function Home() {
               <Col md={6} sm={12}>
                 <h2>Image</h2>
                 <img id="image-src" alt="" src={imageSrc} />
-                <input
-                  type="file"
-                  id="file-selector"
-                  name="file"
-                  style={{ display: "none" }}
-                  accept="image/*"
-                  onChange={(e) => {
-                    setImageSrc(
-                      e.target.files[0]
-                        ? URL.createObjectURL(e.target.files[0])
-                        : null
-                    );
-                  }}
-                />
               </Col>
               <Col md={6} sm={12}>
                 <h2>Result</h2>
