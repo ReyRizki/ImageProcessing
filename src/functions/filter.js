@@ -117,13 +117,21 @@ export const lowpassFilter = (cv, image) => {
 
 export const highpassFilter = (cv, image) => {
     let result = new cv.Mat();
-    let ksize = new cv.Size(0, 0);
+    let arr = [0, -1, 0, -1, 4, -1, 0, -1, 0];
+    console.log(arr);
+    let M = cv.matFromArray(3, 3, cv.CV_32FC1, arr);
+    console.log(M);
+    let anchor = new cv.Point(-1, -1);
+    cv.filter2D(image, result, cv.CV_8U, M, anchor, 0, cv.BORDER_DEFAULT);
+    console.log(result);
 
-    cv.GaussianBlur(image, result, ksize, 3);
+    for (let row = 0; row < result.rows; row++) {
+        for (let col = 0; col < result.cols; col++) {
+            const pos = row * result.cols * result.channels() + col * result.channels();
 
-    result.data.forEach((value, index) => {
-        result.data[index] = image.data[index] - value + 127;
-    })
+            result.data[pos + 3] = 255;
+        }
+    }
 
     return result;
 }
