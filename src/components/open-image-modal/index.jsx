@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Button, Form } from "react-bootstrap";
+import Tiff from "tiff.js";
 
 export default class OpenImageModal extends React.Component {
   constructor(props) {
@@ -48,8 +49,25 @@ export default class OpenImageModal extends React.Component {
             style={{ display: "none" }}
             accept={this.state.type}
             onChange={(e) => {
-              if (e.target.files[0]) {
-                this.props.setImageSrc(URL.createObjectURL(e.target.files[0]));
+              let file = e.target.files[0];
+
+              if (file) {
+                const format = file.name.split(".").slice(-1)[0];
+
+                if (format === "tiff") {
+                  file.arrayBuffer().then((buffer) => {
+                    const tiff = new Tiff({ buffer: buffer });
+                    const canvas = tiff.toCanvas();
+
+                    canvas.toBlob((blob) => {
+                      const converted = new File([blob], "converted.jpg", { type: "image/jpeg "});
+                      this.props.setImageSrc(URL.createObjectURL(converted));
+                    }, "image/jpeg")
+                  });
+                } else {
+                  this.props.setImageSrc(URL.createObjectURL(file));
+                }
+
                 this.props.hideModal();
               }
             }}
