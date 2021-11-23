@@ -97,6 +97,7 @@ export default function Home() {
       if (mode === "image") {
         showImageMatrix(cv, imageResult, "canvas-output");
       } else if (mode === "histogram") {
+        showImageMatrix(cv, imageResult, "canvas-output");
         for (let i = 0; i < 3; i++) {
           const result = drawHistogram(cv, imageResult, i);
 
@@ -274,7 +275,14 @@ export default function Home() {
             <Row>
               <Col md={6} sm={12}>
                 <h2>Image</h2>
-                <img id="image-src" alt="" src={imageSrc} />
+                {mode === "image" ? (
+                  <img id="image-src" alt="" src={imageSrc} />
+                ) : (
+                  <>
+                    <img id="image-src" alt="" src={imageSrc} style={{ display: "none" }} />
+                    <canvas id="canvas-output"></canvas>
+                  </>
+                )}
               </Col>
               <Col md={6} sm={12}>
                 <h2>Result</h2>
